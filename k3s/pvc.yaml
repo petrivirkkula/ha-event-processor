@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ha_event_processor-pvc
+  namespace: default
+  labels:
+    app: ha_event_processor
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path  # k3s default storage class
+  resources:
+    requests:
+      storage: 10Gi
+

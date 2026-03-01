@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ha_event_processor
+  namespace: default
+  labels:
+    app: ha_event_processor
+    version: v1
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: ha_event_processor
+  template:
+    metadata:
+      labels:
+        app: ha_event_processor
+        version: v1
+    spec:
+      serviceAccountName: ha_event_processor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: processor
+        image: ha_event_processor:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        env:
+        # MQTT Configuration
+        - name: MQTT_BROKER_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: ha_event_processor-config
+              key: mqtt_broker_host
+        - name: MQTT_BROKER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ha_event_processor-config
+              key: mqtt_broker_port
+        - name: MQTT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: ha_event_processor-secrets
+              key: mqtt_username
+              optional: true
+        - name: MQTT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ha_event_processor-secrets
+              key: mqtt_password
+              optional: true
+        - name: MQTT_CLIENT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: ha_event_processor-config
+              key: mqtt_client_id
+        # Database Configuration
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: ha_event_processor-config
+              key: database_url
+        # GCP Configuration
+        - name: GCP_PROJECT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: ha_event_processor-config
+              key: gcp_project_id
+              optional: true
+        - name: GCP_DATASET_ID
+          valueFrom:
+            configMapKeyRef:
+              name: ha_event_processor-config
+              key: gcp_dataset_id
+        - name: GCP_TABLE_ID
+          valueFrom:
+            configMapKeyRef:
+              name: ha_event_processor-config
+              key: gcp_table_id
+        - name: GCP_SERVICE_ACCOUNT_JSON
+          valueFrom:
+            secretKeyRef:
+              name: ha_event_processor-secrets
+              key: gcp_service_account_json
+              optional: true
+        - name: ENABLE_GCP_SYNC
+          valueFrom:
+            configMapKeyRef:
+              name: ha_event_processor-config
+              key: enable_gcp_sync
+        # Logging Configuration
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: ha_event_processor-config
+              key: log_level
+        # Server Configuration
+        - name: SERVER_HOST
+          value: "0.0.0.0"
+        - name: SERVER_PORT
+          value: "8000"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: ha_event_processor-pvc
+      - name: tmp
+        emptyDir: {}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+

@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ha_event_processor-config
+  namespace: default
+  labels:
+    app: ha_event_processor
+data:
+  # MQTT Configuration
+  mqtt_broker_host: "mosquitto.default.svc.cluster.local"  # Change to your MQTT broker
+  mqtt_broker_port: "1883"
+  mqtt_client_id: "ha_event_processor"
+  mqtt_topic_prefix: "homeassistant/"
+
+  # Database Configuration
+  database_url: "sqlite:////app/data/ha_events.db"  # SQLite for simplicity, can change to PostgreSQL
+  database_pool_size: "5"
+
+  # GCP Configuration
+  gcp_project_id: ""  # Set your GCP project ID
+  gcp_dataset_id: "ha_events"
+  gcp_table_id: "events"
+  gcp_batch_size: "100"
+  gcp_batch_timeout_seconds: "300"
+
+  # Processing Configuration
+  enable_gcp_sync: "true"  # Set to "false" if GCP is not configured
+  event_retention_days: "30"
+  max_retries: "3"
+  retry_backoff_factor: "2.0"
+
+  # Logging Configuration
+  log_level: "INFO"
+

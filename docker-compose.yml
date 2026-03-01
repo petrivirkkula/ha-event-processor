@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: ha-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    networks:
+      - ha-network
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-h", "localhost", "-t", "$SYS/broker/info"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Event Processor Application
+  processor:
+    build: .
+    container_name: ha_event_processor
+    ports:
+      - "8000:8000"
+    environment:
+      MQTT_BROKER_HOST: mosquitto
+      MQTT_BROKER_PORT: 1883
+      DATABASE_URL: sqlite:////app/data/ha_events.db
+      ENABLE_GCP_SYNC: "false"  # Set to true if GCP is configured
+      LOG_LEVEL: DEBUG
+    volumes:
+      - processor_data:/app/data
+    networks:
+      - ha-network
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Optional: PostgreSQL for production database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ha-postgres
+    environment:
+      POSTGRES_USER: ha_user
+      POSTGRES_PASSWORD: ha_password
+      POSTGRES_DB: ha_events
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ha-network
+    profiles:
+      - postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ha_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mosquitto_data:
+  mosquitto_logs:
+  processor_data:
+  postgres_data:
+
+networks:
+  ha-network:
+    driver: bridge
+

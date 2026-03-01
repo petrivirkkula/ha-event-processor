@@ -1,0 +1,42 @@
+[run]
+source = src/ha_event_processor
+omit =
+    */tests/*
+    */test_*.py
+    */__pycache__/*
+    */.venv/*
+    */site-packages/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    def __str__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+    @abc.abstractmethod
+    @pytest.fixture
+    if 0:
+    if False:
+    class .*\bProtocol\):
+    @(abc\.)?abstractproperty
+
+precision = 2
+show_missing = True
+skip_covered = False
+sort = Cover
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml
+
+[json]
+output = coverage.json
+pretty_print = True
+show_contexts = True
+
