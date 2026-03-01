@@ -27,6 +27,7 @@ jobs:
 
       - name: Run tests
         run: |
+          export PYTHONPATH=$(pwd)/src:$PYTHONPATH
           bash scripts/run-tests.sh --no-install
 
       - name: Upload coverage artifact
