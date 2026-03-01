@@ -129,6 +129,16 @@ class GCPUploader:
                 logger.debug("No unsynced events to upload")
                 return 0
 
+            # Defensive: if the database returned more events than requested,
+            # respect the batch_size parameter by trimming the list. This
+            # prevents unexpected behavior when tests or mocks return more
+            # items than the limit argument was supposed to enforce.
+            if batch_size is not None and len(events) > batch_size:
+                logger.debug(
+                    f"Database returned {len(events)} events, trimming to batch_size={batch_size}"
+                )
+                events = events[:batch_size]
+
             # Convert events to BigQuery format
             rows = [self._event_to_bq_row(event) for event in events]
 
@@ -183,4 +193,3 @@ class GCPUploader:
             "source": event.source,
             "ingested_at": datetime.utcnow().isoformat(),
         }
-
