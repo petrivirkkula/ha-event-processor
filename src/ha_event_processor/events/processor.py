@@ -1,6 +1,7 @@
 """Event processing and routing."""
 import json
 import logging
+import re
 from typing import Optional, Dict, Any
 from datetime import datetime
 
@@ -21,6 +22,7 @@ class EventProcessor:
             database: Database instance for storing events
         """
         self.database = database
+        self.entity_name_pattern = re.compile(r"^[a-z0-9_]+\.[a-z0-9_]+$")
 
     def process_event(self, event_data: Dict[str, Any]) -> Optional[int]:
         """Process and store an event.
@@ -112,12 +114,5 @@ class EventProcessor:
         if not isinstance(entity_id, str):
             return False
 
-        parts = entity_id.split(".")
-        if len(parts) != 2:
-            return False
-
-        domain, name = parts
-        return bool(domain.isidentifier() or "_" in domain) and bool(
-            name.isidentifier() or "_" in name
-        )
+        return re.fullmatch(self.entity_name_pattern, entity_id) is not None
 
