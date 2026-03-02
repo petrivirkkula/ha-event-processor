@@ -107,7 +107,11 @@ class MQTTClient:
             topic = msg.topic
             payload = msg.payload.decode("utf-8")
 
-            logger.debug(f"Received message on {topic}: {payload[:100]}...")
+            verbose_logging = settings.verbose_logging or False
+            if verbose_logging:
+                logger.debug(f"Received message on {topic}: {payload}")
+            else:
+                logger.debug(f"Received message on {topic}: {payload[:100]}...")
 
             # Parse the event from topic and payload
             event_data = self._parse_event(topic, payload)

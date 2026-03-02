@@ -53,7 +53,10 @@ class EventProcessor:
             return event.id
 
         except EventValidationError as e:
-            logger.warning(f"Event validation failed: {e}")
+            if settings.verbose_logging:
+                logger.warning(f"Event validation failed: {e} event_data={event_data}")
+            else:
+                logger.warning(f"Event validation failed: {e}")
             return None
         except Exception as e:
             logger.error(f"Event processing failed: {e}")

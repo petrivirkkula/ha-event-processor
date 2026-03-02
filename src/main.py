@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from typing import Optional
 
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from prometheus_client import REGISTRY, generate_latest
 
 from ha_event_processor.config import settings
@@ -178,7 +178,7 @@ async def health_check():
 @app.get("/metrics")
 async def metrics():
     """Prometheus metrics endpoint."""
-    return app.openapi()(generate_latest(REGISTRY).decode("utf-8"))
+    return PlainTextResponse(generate_latest(REGISTRY).decode("utf-8"))
 
 
 @app.get("/stats")
@@ -198,7 +198,7 @@ async def stats():
     }
 
 
-@app.post("/sync")
+@app.get("/sync")
 async def trigger_sync():
     """Manually trigger GCP sync."""
     global gcp_uploader

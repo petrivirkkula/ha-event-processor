@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     server_host: str = os.getenv("SERVER_HOST", "0.0.0.0")
     server_port: int = int(os.getenv("SERVER_PORT", "8000"))
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
+    verbose_logging: bool = os.getenv("VERBOSE_LOGGING", False)
 
     class Config:
         env_file = ".env"
