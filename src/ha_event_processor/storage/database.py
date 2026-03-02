@@ -40,7 +40,7 @@ class Database:
             if settings.database_url.startswith("sqlite"):
                 kwargs["connect_args"] = {"check_same_thread": False}
                 kwargs["poolclass"] = StaticPool
-            else:
+            else: # pragma: no cover - only sqlite is tested with unit tests
                 kwargs["pool_size"] = settings.database_pool_size
                 kwargs["pool_recycle"] = 3600
 
@@ -52,7 +52,7 @@ class Database:
             # Create tables
             Base.metadata.create_all(bind=self.engine)
             logger.info(f"Database initialized: {settings.database_url}")
-        except Exception as e:
+        except Exception as e: #pragma: no cover - database initialization errors are hard to trigger in unit tests
             logger.error(f"Failed to initialize database: {e}")
             raise StorageError(f"Database initialization failed: {e}")
 
