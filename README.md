@@ -192,6 +192,71 @@ DATABASE_URL=postgresql://user:password@postgres-host:5432/ha_events
    # Or base64 encode and add to k3s/secret.yaml
    ```
 
+4. **Create schema.json With Following Content**
+   ```json
+   [
+     {
+       "mode": "REQUIRED",
+       "name": "id",
+       "type": "INTEGER"
+     },
+     {
+       "mode": "REQUIRED",
+       "name": "timestamp",
+       "type": "TIMESTAMP"
+     },
+     {
+       "maxLength": "255",
+       "mode": "REQUIRED",
+       "name": "entity_id",
+       "type": "STRING"
+     },
+     {
+       "maxLength": "255",
+       "mode": "REQUIRED",
+       "name": "event_type",
+       "type": "STRING"
+     },
+     {
+       "maxLength": "255",
+       "mode": "NULLABLE",
+       "name": "domain",
+       "type": "STRING"
+     },
+     {
+       "maxLength": "255",
+       "mode": "NULLABLE",
+       "name": "state",
+       "type": "STRING"
+     },
+     {
+       "mode": "NULLABLE",
+       "name": "attributes",
+       "type": "STRING"
+     },
+     {
+       "defaultValueExpression": "\"mqtt\"",
+       "maxLength": "255",
+       "mode": "REQUIRED",
+       "name": "source",
+       "type": "STRING"
+     },
+     {
+       "mode": "REQUIRED",
+       "name": "ingested_at",
+       "type": "TIMESTAMP"
+     }
+   ]
+   ```
+
+5. **Create BigQuery table From The Schema File:**
+   ```bash
+   bq mk --table YOUR_PROJECT:YOUR_DATASET.YOUR_TABLE scheem.json
+   ```
+
+   Other option is to use GCP Console to create the table but the there is no JSON option in the Console
+
+
 ## API Endpoints
 
 ### Health Check
